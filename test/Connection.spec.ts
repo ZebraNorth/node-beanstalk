@@ -74,15 +74,16 @@ describe('Connection', () => {
 
     it('should throw on attempt to connect while opening or closing connection', async () => {
       const conn = getNewConnection();
-      conn.open(address.port, address.address);
+      const opening = conn.open(address.port, address.address);
       await conn
         .open(address.port, address.address)
         .then(() => {
           throw new Error('not thrown!');
         })
-        .catch((err: ConnectionError) => {
+        .catch(async (err: ConnectionError) => {
           expect(err).toBeInstanceOf(ConnectionError);
           expect(err.code).toBe('ErrChangingState');
+          await opening;
         });
     });
   });
@@ -112,17 +113,18 @@ describe('Connection', () => {
         });
     });
 
-    it('should throw on attempt to connect while opening or closing connection', async () => {
+    it('should throw on attempt to close while opening or closing connection', async () => {
       const conn = getNewConnection();
-      conn.open(address.port, address.address);
+      const opening = conn.open(address.port, address.address);
       await conn
         .close()
         .then(() => {
           throw new Error('not thrown!');
         })
-        .catch((err: ConnectionError) => {
+        .catch(async (err: ConnectionError) => {
           expect(err).toBeInstanceOf(ConnectionError);
           expect(err.code).toBe('ErrChangingState');
+          await opening;
         });
     });
   });
@@ -142,23 +144,19 @@ describe('Connection', () => {
         });
     });
 
-    if (process.env.CI === undefined) {
-      // somewhy this test fails on CI
-      // ToDo: investigate later
-      it('should write given buffer to underlying socket', (done) => {
-        const conn = getNewConnection();
-        conn.open(address.port, address.address).then(() => {
-          const sendBuffer = Buffer.from('hey!');
+    it('should write given buffer to underlying socket', (done) => {
+      const conn = getNewConnection();
+      conn.open(address.port, address.address).then(() => {
+        const sendBuffer = Buffer.from('hey!');
 
-          serverSocket.on('data', async (data) => {
-            expect(data).toStrictEqual(sendBuffer);
-            done();
-          });
-
-          conn.write(sendBuffer);
+        serverSocket.on('data', async (data) => {
+          expect(data).toStrictEqual(sendBuffer);
+          done();
         });
+
+        conn.write(sendBuffer);
       });
-    }
+    });
   });
 
   describe('events', () => {
