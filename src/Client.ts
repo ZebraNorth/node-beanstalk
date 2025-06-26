@@ -48,6 +48,7 @@ export class Client extends EventEmitter {
     };
 
     this._conn = connection;
+    this._conn.on('close', () => this.emit('close'));
   }
 
   /**
@@ -90,6 +91,7 @@ export class Client extends EventEmitter {
       await waitPromise;
 
       await this._conn.open(this._opt.port, this._opt.host);
+      this.emit('connect');
     } finally {
       moveQueue();
     }
@@ -756,7 +758,7 @@ export class Client extends EventEmitter {
       throw new ClientError(
         ClientErrorCode.ErrPayloadTooBig,
         `${serializer ? 'Serialized payload' : 'Payload'} is too big,` +
-          ` maximum size is ${maxPayloadSize} bytes, got ${payloadBuffer.length}`
+        ` maximum size is ${maxPayloadSize} bytes, got ${payloadBuffer.length}`
       );
     }
 
@@ -774,6 +776,13 @@ export class Client extends EventEmitter {
       let headers: ICommandResponseHeaders | null = null;
       let dataReadTimeout: NodeJS.Timeout;
 
+      // abort reading the response if the connection is closed
+      const closeListener = () => {
+        conn.off('data', dataListener);
+        conn.off('close', closeListener);
+        reject(new ClientError(ClientErrorCode.ErrDisconnecting, 'Connection closed'));
+      };
+
       const dataListener = (data: Buffer) => {
         response = Buffer.concat([response, data]);
 
@@ -789,6 +798,7 @@ export class Client extends EventEmitter {
                 // if response data not read - start read timeout
                 dataReadTimeout = setTimeout(() => {
                   conn.off('data', dataListener);
+                  conn.off('close', closeListener);
                   reject(
                     new ClientError(
                       ClientErrorCode.ErrResponseRead,
@@ -807,6 +817,7 @@ export class Client extends EventEmitter {
               // response data is read, we're done
               clearTimeout(dataReadTimeout);
               conn.off('data', dataListener);
+              conn.off('close', closeListener);
               resolve({
                 status: headers.status,
                 headers: headers.headers,
@@ -815,6 +826,7 @@ export class Client extends EventEmitter {
             }
           } else {
             conn.off('data', dataListener);
+            conn.off('close', closeListener);
             resolve({
               status: headers.status,
               headers: headers.headers,
@@ -824,6 +836,7 @@ export class Client extends EventEmitter {
       };
 
       conn.on('data', dataListener);
+      conn.on('close', closeListener);
     });
   }
 

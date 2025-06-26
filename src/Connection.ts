@@ -4,34 +4,34 @@ import { ConnectionError, ConnectionErrorCode } from './error/ConnectionError';
 
 export interface Connection {
   emit: ((event: string, listener: (...args: any[]) => void) => boolean) &
-    ((event: 'close') => boolean) &
-    ((event: 'open', port: number, host: string) => boolean) &
-    ((event: 'error', err: Error) => boolean) &
-    ((event: 'data', data: Buffer) => boolean);
+  ((event: 'close') => boolean) &
+  ((event: 'open', port: number, host: string) => boolean) &
+  ((event: 'error', err: Error) => boolean) &
+  ((event: 'data', data: Buffer) => boolean);
 
   on: ((event: string, listener: (...args: any[]) => void) => this) &
-    ((event: 'close', listener: (...args: any[]) => void) => this) &
-    ((event: 'open', listener: (port: number, host: string) => void) => this) &
-    ((event: 'error', listener: (err: Error) => void) => this) &
-    ((event: 'data', listener: (data: Buffer) => void) => this);
+  ((event: 'close', listener: (...args: any[]) => void) => this) &
+  ((event: 'open', listener: (port: number, host: string) => void) => this) &
+  ((event: 'error', listener: (err: Error) => void) => this) &
+  ((event: 'data', listener: (data: Buffer) => void) => this);
 
   once: ((event: string, listener: (...args: any[]) => void) => this) &
-    ((event: 'close', listener: (...args: any[]) => void) => this) &
-    ((event: 'open', listener: (port: number, host: string) => void) => this) &
-    ((event: 'error', listener: (err: Error) => void) => this) &
-    ((event: 'data', listener: (data: Buffer) => void) => this);
+  ((event: 'close', listener: (...args: any[]) => void) => this) &
+  ((event: 'open', listener: (port: number, host: string) => void) => this) &
+  ((event: 'error', listener: (err: Error) => void) => this) &
+  ((event: 'data', listener: (data: Buffer) => void) => this);
 
   prependListener: ((event: string, listener: (...args: any[]) => void) => this) &
-    ((event: 'close', listener: (...args: any[]) => void) => this) &
-    ((event: 'open', listener: (port: number, host: string) => void) => this) &
-    ((event: 'error', listener: (err: Error) => void) => this) &
-    ((event: 'data', listener: (data: Buffer) => void) => this);
+  ((event: 'close', listener: (...args: any[]) => void) => this) &
+  ((event: 'open', listener: (port: number, host: string) => void) => this) &
+  ((event: 'error', listener: (err: Error) => void) => this) &
+  ((event: 'data', listener: (data: Buffer) => void) => this);
 
   prependOnceListener: ((event: string, listener: (...args: any[]) => void) => this) &
-    ((event: 'close', listener: (...args: any[]) => void) => this) &
-    ((event: 'open', listener: (port: number, host: string) => void) => this) &
-    ((event: 'error', listener: (err: Error) => void) => this) &
-    ((event: 'data', listener: (data: Buffer) => void) => this);
+  ((event: 'close', listener: (...args: any[]) => void) => this) &
+  ((event: 'open', listener: (port: number, host: string) => void) => this) &
+  ((event: 'error', listener: (err: Error) => void) => this) &
+  ((event: 'data', listener: (data: Buffer) => void) => this);
 }
 
 export type ConnectionState = 'open' | 'opening' | 'closed' | 'closing';
@@ -72,7 +72,7 @@ export class Connection extends EventEmitter {
       socket
         .setNoDelay(true)
         .setKeepAlive(true)
-        .on('close', () => this.emit('close'))
+        .on('close', () => { this._state = 'closed'; this.emit('close'); })
         .on('error', (err) => reject(err))
         .on('data', (data) => this.emit('data', data))
         .connect(port, host, () => {
