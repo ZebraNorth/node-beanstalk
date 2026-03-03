@@ -758,7 +758,7 @@ export class Client extends EventEmitter {
       throw new ClientError(
         ClientErrorCode.ErrPayloadTooBig,
         `${serializer ? 'Serialized payload' : 'Payload'} is too big,` +
-        ` maximum size is ${maxPayloadSize} bytes, got ${payloadBuffer.length}`
+          ` maximum size is ${maxPayloadSize} bytes, got ${payloadBuffer.length}`
       );
     }
 
@@ -775,6 +775,7 @@ export class Client extends EventEmitter {
       let response: Buffer = Buffer.alloc(0);
       let headers: ICommandResponseHeaders | null = null;
       let dataReadTimeout: NodeJS.Timeout;
+      let dataListener: (data: Buffer) => void = () => {};
 
       // abort reading the response if the connection is closed
       const closeListener = () => {
@@ -783,7 +784,7 @@ export class Client extends EventEmitter {
         reject(new ClientError(ClientErrorCode.ErrDisconnecting, 'Connection closed'));
       };
 
-      const dataListener = (data: Buffer) => {
+      dataListener = (data: Buffer) => {
         response = Buffer.concat([response, data]);
 
         if (!headers) {

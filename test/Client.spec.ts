@@ -250,27 +250,27 @@ describe('Client', () => {
         in: Parameters<typeof payloadToBuffer>;
         out: ReturnType<typeof payloadToBuffer>;
       }> = [
-          {
-            name: 'undefined',
-            in: [undefined],
-            out: undefined,
-          },
-          {
-            name: 'number',
-            in: [123],
-            out: Buffer.from(`${JSON.stringify(123)}`),
-          },
-          {
-            name: 'string',
-            in: ['some value'],
-            out: Buffer.from(`${JSON.stringify('some value')}`),
-          },
-          {
-            name: 'mixed object',
-            in: [{ baz: ['bax', 123] }],
-            out: Buffer.from(`${JSON.stringify({ baz: ['bax', 123] })}`),
-          },
-        ];
+        {
+          name: 'undefined',
+          in: [undefined],
+          out: undefined,
+        },
+        {
+          name: 'number',
+          in: [123],
+          out: Buffer.from(`${JSON.stringify(123)}`),
+        },
+        {
+          name: 'string',
+          in: ['some value'],
+          out: Buffer.from(`${JSON.stringify('some value')}`),
+        },
+        {
+          name: 'mixed object',
+          in: [{ baz: ['bax', 123] }],
+          out: Buffer.from(`${JSON.stringify({ baz: ['bax', 123] })}`),
+        },
+      ];
 
       // eslint-disable-next-line no-restricted-syntax
       for (const test of tableTests) {
@@ -303,17 +303,17 @@ describe('Client', () => {
         in: Parameters<typeof payloadToBuffer>;
         out: ReturnType<typeof payloadToBuffer>;
       }> = [
-          {
-            name: 'undefined',
-            in: [undefined],
-            out: undefined,
-          },
-          {
-            name: 'string',
-            in: ['some value'],
-            out: Buffer.from('some value'),
-          },
-        ];
+        {
+          name: 'undefined',
+          in: [undefined],
+          out: undefined,
+        },
+        {
+          name: 'string',
+          in: ['some value'],
+          out: Buffer.from('some value'),
+        },
+      ];
 
       // eslint-disable-next-line no-restricted-syntax
       for (const test of tableTests) {
@@ -1501,7 +1501,9 @@ describe('Client', () => {
 
       const address = server.address() as AddressInfo;
       const client = new Client({ host: address.address, port: address.port });
-      const onClose = new Promise<void>((resolve) => client.on('close', resolve));
+      const onClose = new Promise<void>((resolve) => {
+        client.on('close', resolve);
+      });
       await client.connect();
 
       const result = client.reserveWithTimeout(2);
@@ -1527,11 +1529,15 @@ describe('Client', () => {
       conn.getState.mockReturnValue('closed');
 
       const c = new Client({ host: 'example.com', port: 1234 }, conn);
-      const connectEvent = new Promise<void>((resolve) => c.on('connect', resolve));
+      const connectEvent = new Promise<void>((resolve) => {
+        c.on('connect', resolve);
+      });
 
       await Promise.all([c.connect(), connectEvent]);
 
-      const closeEvent = new Promise<void>((resolve) => c.on('close', resolve));
+      const closeEvent = new Promise<void>((resolve) => {
+        c.on('close', resolve);
+      });
 
       conn.emit('close');
 
